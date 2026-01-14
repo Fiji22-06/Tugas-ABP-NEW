@@ -3,21 +3,30 @@ import 'package:http/http.dart' as http;
 import '../models/book.dart';
 
 class BookService {
-  static const String _baseUrl = 'https://www.googleapis.com/books/v1/volumes';
+  // url api google books
+  final String apiUrl = 'https://www.googleapis.com/books/v1/volumes';
 
-  Future<List<Book>> fetchBooks(String query) async {
-    final response = await http.get(Uri.parse('$_baseUrl?q=$query&maxResults=20'));
+  // fungsi buat ambil data buku dari api
+  Future<List<Book>> fetchBooks(String keyword) async {
+    try {
+      final response = await http.get(Uri.parse('$apiUrl?q=$keyword&maxResults=20'));
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List items = data['items'] ?? [];
-      return items.map((json) => Book.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load books');
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+        List<dynamic> items = data['items'] ?? [];
+        
+        return items.map((item) => Book.fromJson(item)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error pas ambil data: $e');
+      return [];
     }
   }
 
-  Future<List<Book>> fetchByCategory(String category) async {
-    return fetchBooks('subject:$category');
+  // fungsi buat filter kategori
+  Future<List<Book>> fetchByCategory(String kategori) async {
+    return fetchBooks('subject:$kategori');
   }
 }

@@ -7,6 +7,7 @@ import 'cart_page.dart';
 import 'about_page.dart';
 import '../utils/format_util.dart';
 
+// Halaman utama aplikasi
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -15,13 +16,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final BookService _bookService = BookService();
-  final TextEditingController _searchController = TextEditingController();
-  List<Book> _books = [];
-  bool _isLoading = true;
-  String _searchQuery = 'self improvement';
+  final BookService servisBuku = BookService();
+  final TextEditingController kontrolCari = TextEditingController();
+  
+  List<Book> listBuku = [];
+  bool lagiLoading = true;
+  String kataKunci = 'self improvement';
 
-  final List<String> categories = [
+  final List<String> daftarKategori = [
     'Fiction',
     'Philosophy',
     'Fantasy',
@@ -32,22 +34,23 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadBooks();
+    ambilDataBuku();
   }
 
-  Future<void> _loadBooks() async {
-    setState(() => _isLoading = true);
+  // Fungsi buat ambil data buku dari API
+  Future<void> ambilDataBuku() async {
+    setState(() => lagiLoading = true);
     try {
-      final books = await _bookService.fetchBooks(_searchQuery);
+      final hasil = await servisBuku.fetchBooks(kataKunci);
       setState(() {
-        _books = books;
-        _isLoading = false;
+        listBuku = hasil;
+        lagiLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() => lagiLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memuat buku. Periksa koneksi internet.')),
+          const SnackBar(content: Text('Waduh, gagal ambil data. Cek koneksi ya!')),
         );
       }
     }
@@ -62,54 +65,47 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AboutPage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage()));
             },
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CartPage()),
-              ).then((_) => setState(() {}));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CartPage()))
+              .then((_) => setState(() {}));
             },
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _loadBooks,
+        onRefresh: ambilDataBuku,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search Bar
+              // Kolom Pencarian
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
-                  controller: _searchController,
+                  controller: kontrolCari,
                   decoration: InputDecoration(
-                    hintText: 'Cari buku di Google Books...',
+                    hintText: 'Cari buku apa hari ini?',
                     prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     filled: true,
                     fillColor: Colors.grey[100],
                   ),
-                  onSubmitted: (value) {
-                    if (value.isNotEmpty) {
-                      setState(() => _searchQuery = value);
-                      _loadBooks();
+                  onSubmitted: (val) {
+                    if (val.isNotEmpty) {
+                      setState(() => kataKunci = val);
+                      ambilDataBuku();
                     }
                   },
                 ),
               ),
 
-              // Layout Responsif (Media Query)
+              // Banner promo / info
               LayoutBuilder(
                 builder: (context, constraints) {
                   return Container(
@@ -132,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const Text(
-                          'Jelajahi jutaan buku langsung dari sumbernya.',
+                          'Cari jutaan buku favoritmu di sini.',
                           style: TextStyle(color: Colors.white70),
                         ),
                       ],
@@ -142,13 +138,10 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 24),
 
-              // Categories
+              // Bagian Kategori
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  'Kategori Populer',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                child: Text('Kategori', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -156,19 +149,16 @@ class _HomePageState extends State<HomePage> {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
+                  itemCount: daftarKategori.length,
+                  itemBuilder: (context, idx) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: ActionChip(
-                        label: Text(categories[index]),
+                        label: Text(daftarKategori[idx]),
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CategoryPage(category: categories[index]),
-                            ),
+                            MaterialPageRoute(builder: (_) => CategoryPage(category: daftarKategori[idx])),
                           ).then((_) => setState(() {}));
                         },
                         backgroundColor: Colors.brown[50],
@@ -180,22 +170,14 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 24),
 
-              // Book List
+              // Daftar Buku
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  'Hasil untuk: "$_searchQuery"',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                child: Text('Hasil cari: "$kataKunci"', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
 
-              _isLoading
-                  ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(50.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
+              lagiLoading
+                  ? const Center(child: Padding(padding: EdgeInsets.all(50.0), child: CircularProgressIndicator()))
                   : Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: GridView.builder(
@@ -207,16 +189,14 @@ class _HomePageState extends State<HomePage> {
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: _books.length,
+                        itemCount: listBuku.length,
                         itemBuilder: (context, index) {
-                          final book = _books[index];
+                          final buku = listBuku[index];
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (_) => DetailPage(book: book),
-                                ),
+                                MaterialPageRoute(builder: (_) => DetailPage(book: buku)),
                               ).then((_) => setState(() {}));
                             },
                             child: Card(
@@ -228,7 +208,7 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                         image: DecorationImage(
-                                          image: NetworkImage(book.imageUrl),
+                                          image: NetworkImage(buku.imageUrl),
                                           fit: BoxFit.cover,
                                         ),
                                       ),
@@ -240,14 +220,14 @@ class _HomePageState extends State<HomePage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          book.title,
+                                          buku.title,
                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          book.author,
+                                          buku.author,
                                           style: TextStyle(color: Colors.grey[600], fontSize: 12),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -257,13 +237,13 @@ class _HomePageState extends State<HomePage> {
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
-                                              FormatUtil.formatCurrency(book.price),
+                                              FormatUtil.formatCurrency(buku.price),
                                               style: const TextStyle(color: Colors.brown, fontWeight: FontWeight.bold),
                                             ),
                                             Row(
                                               children: [
                                                 const Icon(Icons.star, color: Colors.orange, size: 14),
-                                                Text(book.rating.toString(), style: const TextStyle(fontSize: 12)),
+                                                Text(buku.rating.toString(), style: const TextStyle(fontSize: 12)),
                                               ],
                                             ),
                                           ],
@@ -287,7 +267,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _searchController.dispose();
+    kontrolCari.dispose();
     super.dispose();
   }
 }
