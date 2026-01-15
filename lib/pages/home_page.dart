@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController kontrolCari = TextEditingController();
   
   List<Book> listBuku = [];
-  bool lagiLoading = false; // Set awal ke false biar gak langsung loading item kosong
+  bool lagiLoading = false;
   String kataKunci = 'self improvement';
 
   final List<String> daftarKategori = [
@@ -29,7 +29,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Panggil data setelah build pertama selesai
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ambilDataBuku();
     });
@@ -56,6 +55,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Hitung jumlah kolom berdasarkan lebar layar
+    final double lebarLayar = MediaQuery.of(context).size.width;
+    final int jumlahKolom = lebarLayar > 900 ? 5 : (lebarLayar > 600 ? 4 : 2);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('BookTime Store'),
@@ -74,10 +77,9 @@ class _HomePageState extends State<HomePage> {
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: ambilDataBuku,
-              child: ListView( // Pakai ListView sebagai parent utama biar scrollable
+              child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 children: [
-                  // Search Bar
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: TextField(
@@ -98,7 +100,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  // Banner
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     padding: const EdgeInsets.all(20),
@@ -117,7 +118,6 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 20),
 
-                  // Kategori
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text('Kategori', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -144,17 +144,16 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 10),
 
-                  // Grid Buku
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.7,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: jumlahKolom, // Dinamis sesuai lebar layar
+                        childAspectRatio: 0.65, // Sedikit lebih ramping biar gak kegedean
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
                       ),
                       itemCount: listBuku.length,
                       itemBuilder: (context, index) {
@@ -162,25 +161,37 @@ class _HomePageState extends State<HomePage> {
                         return InkWell(
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailPage(book: buku))),
                           child: Card(
+                            clipBehavior: Clip.antiAlias,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: Container(
+                                  child: Image.network(
+                                    buku.imageUrl,
                                     width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                      image: DecorationImage(image: NetworkImage(buku.imageUrl), fit: BoxFit.cover),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (ctx, err, st) => Container(
+                                      color: Colors.grey[200],
+                                      child: const Center(child: Icon(Icons.book, color: Colors.grey)),
                                     ),
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(10.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(buku.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(FormatUtil.formatCurrency(buku.price), style: const TextStyle(color: Colors.brown, fontSize: 12)),
+                                      Text(
+                                        buku.title, 
+                                        maxLines: 2, 
+                                        overflow: TextOverflow.ellipsis, 
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        FormatUtil.formatCurrency(buku.price), 
+                                        style: const TextStyle(color: Colors.brown, fontSize: 12, fontWeight: FontWeight.w600)
+                                      ),
                                     ],
                                   ),
                                 ),

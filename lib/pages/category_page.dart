@@ -27,17 +27,25 @@ class _CategoryPageState extends State<CategoryPage> {
   Future<void> _loadCategoryBooks() async {
     try {
       final books = await _bookService.fetchByCategory(widget.category);
-      setState(() {
-        _books = books;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _books = books;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Gunakan logika responsif yang sama dengan HomePage
+    final double lebarLayar = MediaQuery.of(context).size.width;
+    final int jumlahKolom = lebarLayar > 900 ? 5 : (lebarLayar > 600 ? 4 : 2);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Kategori: ${widget.category}'),
@@ -48,11 +56,11 @@ class _CategoryPageState extends State<CategoryPage> {
               ? const Center(child: Text('Tidak ada buku ditemukan'))
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.6,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: jumlahKolom, // Konsisten dengan HomePage
+                    childAspectRatio: 0.65,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
                   ),
                   itemCount: _books.length,
                   itemBuilder: (context, index) {
@@ -67,18 +75,18 @@ class _CategoryPageState extends State<CategoryPage> {
                         );
                       },
                       child: Card(
+                        clipBehavior: Clip.antiAlias,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(12)),
-                                  image: DecorationImage(
-                                    image: NetworkImage(book.imageUrl),
-                                    fit: BoxFit.cover,
-                                  ),
+                              child: Image.network(
+                                book.imageUrl,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (ctx, err, st) => Container(
+                                  color: Colors.grey[200],
+                                  child: const Center(child: Icon(Icons.book, color: Colors.grey)),
                                 ),
                               ),
                             ),
@@ -91,39 +99,17 @@ class _CategoryPageState extends State<CategoryPage> {
                                     book.title,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 14),
+                                        fontSize: 13),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    book.author,
-                                    style: TextStyle(
-                                        color: Colors.grey[600], fontSize: 12),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        FormatUtil.formatCurrency(book.price),
-                                        style: const TextStyle(
-                                            color: Colors.brown,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.star,
-                                              color: Colors.orange, size: 14),
-                                          Text(book.rating.toString(),
-                                              style: const TextStyle(
-                                                  fontSize: 12)),
-                                        ],
-                                      ),
-                                    ],
+                                    FormatUtil.formatCurrency(book.price),
+                                    style: const TextStyle(
+                                        color: Colors.brown,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12),
                                   ),
                                 ],
                               ),
