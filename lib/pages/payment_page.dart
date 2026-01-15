@@ -81,8 +81,9 @@ class _PaymentPageState extends State<PaymentPage> {
                         setState(() {
                           selectedMethod = method['id'];
                         });
+                        // Jika pilih QRIS, langsung proses tanpa muncul dialog QR
                         if (method['id'] == 'qris') {
-                          _showQRISDialog();
+                          _processPayment();
                         }
                       },
                     ),
@@ -90,6 +91,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 },
               ),
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: selectedMethod == null
                   ? null
@@ -110,49 +112,18 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  void _showQRISDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Scan QRIS', textAlign: TextAlign.center),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
-                image: const DecorationImage(
-                  image: NetworkImage('https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Silakan scan kode di atas untuk membayar', textAlign: TextAlign.center),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _processPayment() {
-    // Simulasi loading
+    // Tampilkan loading sebentar biar kelihatan ada proses
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
       Navigator.pop(context); // Tutup loading
+      
       Navigator.push(
         context,
         MaterialPageRoute(

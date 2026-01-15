@@ -7,7 +7,7 @@ class AboutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil Pengembang'),
+        title: const Text('Profil Saya'),
       ),
       body: Center(
         child: Column(
@@ -15,13 +15,12 @@ class AboutPage extends StatelessWidget {
           children: [
             const CircleAvatar(
               radius: 80,
-              backgroundImage: NetworkImage(
-                'https://avatars.githubusercontent.com/u/12345678?v=4', // Ganti dengan foto profil Anda jika ada
-              ),
+              backgroundColor: Colors.brown,
+              child: Icon(Icons.person, size: 80, color: Colors.white),
             ),
             const SizedBox(height: 24),
             const Text(
-              'Novan', // Ganti dengan nama Anda
+              'fiji firmanda',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -29,7 +28,15 @@ class AboutPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'novan@example.com', // Ganti dengan email Anda
+              'NIM. 240040099',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.brown,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Text(
+              'Prodi Teknologi Informasi (TI)',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
@@ -39,7 +46,7 @@ class AboutPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: const Text(
-                'Mahasiswa yang sedang belajar pengembangan aplikasi mobile menggunakan Flutter. Aplikasi BookTime ini dikembangkan sebagai proyek akhir untuk submission Dicoding.',
+                'Saya mahasiswa TI yang sedang belajar bikin aplikasi mobile pakai Flutter. Project BookTime Store ini dibuat untuk memenuhi tugas mata kuliah Pemrograman Perangkat Bergerak (ABP).',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, height: 1.5),
               ),
