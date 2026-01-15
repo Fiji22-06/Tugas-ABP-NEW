@@ -27,93 +27,83 @@ class _PaymentPageState extends State<PaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pembayaran')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Ringkasan Pembayaran',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('${widget.items.length} Buku', style: const TextStyle(fontSize: 16)),
-                Text(
-                  FormatUtil.formatCurrency(widget.totalAmount),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown,
-                  ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ringkasan Pembayaran',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.brown[50],
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
-            ),
-            const Divider(height: 40),
-            const Text(
-              'Pilih Metode Pembayaran',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${widget.items.length} Buku', style: const TextStyle(fontSize: 16)),
+                    Text(
+                      FormatUtil.formatCurrency(widget.totalAmount),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.brown,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                'Pilih Metode Pembayaran',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: paymentMethods.length,
                 itemBuilder: (context, index) {
                   final method = paymentMethods[index];
+                  bool isSelected = selectedMethod == method['id'];
                   return Card(
-                    color: selectedMethod == method['id'] ? Colors.brown[50] : null,
+                    color: isSelected ? Colors.brown[50] : null,
+                    margin: const EdgeInsets.only(bottom: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(
-                        color: selectedMethod == method['id'] ? Colors.brown : Colors.transparent,
+                        color: isSelected ? Colors.brown : Colors.transparent,
                         width: 2,
                       ),
                     ),
                     child: ListTile(
-                      leading: Icon(method['icon'], color: Colors.brown),
-                      title: Text(method['name']),
-                      trailing: selectedMethod == method['id'] 
-                          ? const Icon(Icons.check_circle, color: Colors.brown) 
-                          : const Icon(Icons.circle_outlined),
+                      leading: Icon(method['icon'], color: isSelected ? Colors.brown : Colors.grey),
+                      title: Text(method['name'], style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                       onTap: () {
                         setState(() {
                           selectedMethod = method['id'];
                         });
-                        // Jika pilih QRIS, langsung proses tanpa muncul dialog QR
-                        if (method['id'] == 'qris') {
-                          _processPayment();
-                        }
+                        // Langsung proses pembayaran untuk menghindari exception dialog QRIS
+                        _processPayment();
                       },
                     ),
                   );
                 },
               ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: selectedMethod == null
-                  ? null
-                  : () {
-                      _processPayment();
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.brown,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 55),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Bayar Sekarang', style: TextStyle(fontSize: 18)),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _processPayment() {
-    // Tampilkan loading sebentar biar kelihatan ada proses
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -124,7 +114,7 @@ class _PaymentPageState extends State<PaymentPage> {
       if (!mounted) return;
       Navigator.pop(context); // Tutup loading
       
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => ReceiptPage(
